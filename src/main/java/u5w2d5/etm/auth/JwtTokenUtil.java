@@ -1,27 +1,29 @@
 package u5w2d5.etm.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 @Component
+@Configuration
+@ConfigurationProperties(prefix = "jwt")
 public class JwtTokenUtil {
-
-    @Value("${jwt.secret}")
-    private String secret;
-
-    @Value("${jwt.expiration}")
-    private long jwtExpirationInMs;
+    private String secretKey;
+    private long expirationTime;
 
     // Estrae il nome utente dal token JWT
     public String getUsernameFromToken(String token) {
@@ -33,7 +35,21 @@ public class JwtTokenUtil {
         return getClaimFromToken(token, Claims::getExpiration);
     }
 
-    // Estrae un claim specifico dal token JWT
+    /**
+     * Retrieves a specific claim from the provided JWT token.
+     *
+     * @param <T>            The type of the claim to be returned.
+     * @param token          The JWT token from which the claim is to be extracted.
+     * @param claimsResolver A function that takes the Claims object and returns the
+     *                       desired claim.
+     * @return The claim extracted from the token, of type T.
+     *
+     *         This method returns a generic type <T> to allow flexibility in
+     *         extracting various types of claims
+     *         from the JWT token. The claimsResolver function is used to specify
+     *         which claim to extract and
+     *         how to convert it to the desired type.
+     */
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
@@ -41,8 +57,9 @@ public class JwtTokenUtil {
 
     // Estrae tutti i claims dal token JWT
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(secret)
+        return Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -64,15 +81,15 @@ public class JwtTokenUtil {
                 .setSubject(userDetails.getUsername())
                 .claim("roles", roles) // Aggiunge i ruoli come claim
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     // Estrae i ruoli dal token JWT
-    public List<String> getRolesFromToken(String token) {
+    public Set<String> getRolesFromToken(String token) {
         Claims claims = getAllClaimsFromToken(token);
-        return claims.get("roles", List.class);
+        return claims.get("roles", Set.class);
     }
 
     // Valida il token JWT

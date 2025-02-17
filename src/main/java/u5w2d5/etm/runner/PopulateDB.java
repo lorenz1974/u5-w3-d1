@@ -15,6 +15,7 @@ import u5w2d5.etm.request.EmployeeRequestDTO;
 import u5w2d5.etm.request.TripRequestDTO;
 import u5w2d5.etm.service.*;
 
+@Order(2)
 @Component
 @Slf4j
 @RequiredArgsConstructor
