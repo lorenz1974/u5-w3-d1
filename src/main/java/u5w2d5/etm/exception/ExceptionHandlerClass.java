@@ -76,10 +76,9 @@ public class ExceptionHandlerClass {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
-    // @ExceptionHandler(value = JwtTokenMissingException.class)
-    // protected ResponseEntity<String>
-    // JwtTokenMissingException(JwtTokenMissingException ex) {
-    // return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
-    // }
+    @ExceptionHandler(value = SecurityException.class)
+    protected ResponseEntity<String> entityNotFound(SecurityException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
 
 }

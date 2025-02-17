@@ -13,11 +13,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AppUserService {
 
     private final AppUserRepository appUserRepository;
@@ -32,6 +34,15 @@ public class AppUserService {
         }
 
         AppUser appUser = new AppUser();
+
+        log.debug("Registering user...");
+        log.debug(" - firstName: {}", firstName);
+        log.debug(" - lastName: {}", lastName);
+        log.debug(" - username: {}", username);
+        log.debug(" - email: {}", email);
+        log.debug(" - password: {}", password);
+        log.debug(" - roles: {}", roles);
+
         appUser.setFirstName(firstName);
         appUser.setLastName(lastName);
         appUser.setUsername(username);

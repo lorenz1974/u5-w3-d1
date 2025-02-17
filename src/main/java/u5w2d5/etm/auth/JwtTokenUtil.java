@@ -17,13 +17,17 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 @Component
 @Configuration
+@RequiredArgsConstructor
 @ConfigurationProperties(prefix = "jwt")
 public class JwtTokenUtil {
-    private String secretKey;
-    private long expirationTime;
+    private final String secretKey;
+    private final long expirationTime;
 
     // Estrae il nome utente dal token JWT
     public String getUsernameFromToken(String token) {

@@ -23,7 +23,7 @@ public class CreateAppUsers implements CommandLineRunner {
     private final AppUserService appUserService;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) throws Exception, IllegalArgumentException {
 
         log.info("Creating application users...");
 
@@ -41,7 +41,13 @@ public class CreateAppUsers implements CommandLineRunner {
             String password = "admin";
             Set<AppUserRole> roles = Set.of(AppUserRole.ROLE_ADMIN);
 
-            appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            try {
+                appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            } catch (IllegalArgumentException e) {
+                new IllegalArgumentException("Error creating user: " + e.getMessage());
+            } catch (Exception e) {
+                new Exception("Error creating seller user: " + e.getMessage());
+            }
         }
 
         log.info("Creating 3 seller users...");
@@ -54,10 +60,16 @@ public class CreateAppUsers implements CommandLineRunner {
                     lastName.replace(" ", "") +
                     "@" +
                     faker.internet().domainName().replace(" ", "").toLowerCase();
-            String password = "seller";
+            String password = faker.internet().password();
             Set<AppUserRole> roles = Set.of(AppUserRole.ROLE_SELLER);
 
-            appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            try {
+                appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            } catch (IllegalArgumentException e) {
+                new IllegalArgumentException("Error creating user: " + e.getMessage());
+            } catch (Exception e) {
+                new Exception("Error creating seller user: " + e.getMessage());
+            }
         }
 
         log.info("Creating 3 buyer users...");
@@ -70,10 +82,16 @@ public class CreateAppUsers implements CommandLineRunner {
                     lastName.replace(" ", "") +
                     "@" +
                     faker.internet().domainName().replace(" ", "").toLowerCase();
-            String password = "seller";
+            String password = "buyer";
             Set<AppUserRole> roles = Set.of(AppUserRole.ROLE_BUYER);
 
-            appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            try {
+                appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            } catch (IllegalArgumentException e) {
+                new IllegalArgumentException("Error creating user: " + e.getMessage());
+            } catch (Exception e) {
+                new Exception("Error creating seller user: " + e.getMessage());
+            }
         }
 
         log.info("Creating 3 seller&buyer users...");
@@ -86,10 +104,16 @@ public class CreateAppUsers implements CommandLineRunner {
                     lastName.replace(" ", "") +
                     "@" +
                     faker.internet().domainName().replace(" ", "").toLowerCase();
-            String password = "buyer";
+            String password = "seller&buyer";
             Set<AppUserRole> roles = Set.of(AppUserRole.ROLE_SELLER, AppUserRole.ROLE_BUYER);
 
-            appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            try {
+                appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            } catch (IllegalArgumentException e) {
+                new IllegalArgumentException("Error creating user: " + e.getMessage());
+            } catch (Exception e) {
+                new Exception("Error creating seller user: " + e.getMessage());
+            }
         }
 
         log.info("Creating 3 default users...");
@@ -105,7 +129,13 @@ public class CreateAppUsers implements CommandLineRunner {
             String password = "user";
             Set<AppUserRole> roles = Set.of(AppUserRole.ROLE_USER);
 
-            appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            try {
+                appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+            } catch (IllegalArgumentException e) {
+                new IllegalArgumentException("Error creating user: " + e.getMessage());
+            } catch (Exception e) {
+                new Exception("Error creating seller user: " + e.getMessage());
+            }
         }
 
         log.info("Application users created successfully.");
