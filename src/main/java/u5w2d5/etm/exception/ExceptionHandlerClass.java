@@ -14,7 +14,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import u5w2d5.etm.auth.JwtTokenMissingException;
 
 @ControllerAdvice
 public class ExceptionHandlerClass {
@@ -77,9 +76,9 @@ public class ExceptionHandlerClass {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(value = JwtTokenMissingException.class)
-    protected ResponseEntity<String> JwtTokenMissingException(JwtTokenMissingException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    @ExceptionHandler(value = SecurityException.class)
+    protected ResponseEntity<String> entityNotFound(SecurityException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(value = SecurityException.class)

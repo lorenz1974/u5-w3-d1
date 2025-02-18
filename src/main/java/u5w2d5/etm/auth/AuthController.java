@@ -1,13 +1,20 @@
 package u5w2d5.etm.auth;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Set;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
+import org.springframework.web.bind.annotation.RequestBody;
+import lombok.RequiredArgsConstructor;
+import u5w2d5.etm.auth.model.*;
+import u5w2d5.etm.auth.request.*;
+import u5w2d5.etm.auth.response.*;
+import u5w2d5.etm.auth.service.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,23 +24,24 @@ public class AuthController {
     private final AppUserService appUserService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest) {
-        appUserService.registerUser(
+    @PreAuthorize("hasRole('ADMIN')")
+    public idResponse register(@RequestBody AppUserRegistrationRequest registerRequest) {
+        AppUser appUser = appUserService.registerUser(
+                registerRequest.getFirstName(),
+                registerRequest.getLastName(),
                 registerRequest.getUsername(),
+                registerRequest.getEmail(),
                 registerRequest.getPassword(),
-                Set.of(Role.ROLE_USER) // Assegna il ruolo di default
-        );
-        return ResponseEntity.ok("Registrazione avvenuta con successo");
+                Set.of(registerRequest.getRole() == null ? AppUserRole.ROLE_USER
+                        : AppUserRole.valueOf("ROLE_" + registerRequest.getRole())));
+        return new idResponse(appUser.getId());
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
-        System.out.println("Prima di token: " + loginRequest);
+    public ResponseEntity<AppUserAuthResponse> login(@RequestBody AppUserLoginRequest loginRequest) {
         String token = appUserService.authenticateUser(
                 loginRequest.getUsername(),
                 loginRequest.getPassword());
-
-        System.out.println("Token generato: " + token);
-        return ResponseEntity.ok(new AuthResponse(token));
+        return ResponseEntity.ok(new AppUserAuthResponse(token));
     }
 }

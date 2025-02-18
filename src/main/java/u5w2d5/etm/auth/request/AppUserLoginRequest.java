@@ -1,9 +1,9 @@
-package u5w2d5.etm.auth;
+package u5w2d5.etm.auth.request;
 
 import lombok.Data;
 
 @Data
-public class LoginRequest {
+public class AppUserLoginRequest {
     private String username;
     private String password;
 }
