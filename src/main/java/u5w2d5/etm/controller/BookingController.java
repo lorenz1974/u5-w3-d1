@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import u5w2d5.etm.model.Booking;
 import u5w2d5.etm.request.BookingRequestDTO;
@@ -33,14 +34,14 @@ public class BookingController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
-    public IdResponse createBooking(@RequestBody BookingRequestDTO booking) {
+    public IdResponse createBooking(@Valid @RequestBody BookingRequestDTO booking) {
         return bookingService.createBooking(booking);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasRole('ADMIN')")
-    public Booking updateBooking(@PathVariable Long id, @RequestBody Booking bookingDetails) {
+    public Booking updateBooking(@Valid @PathVariable Long id, @RequestBody Booking bookingDetails) {
         Booking updatedBooking = bookingService.updateBooking(id, bookingDetails);
         return updatedBooking;
     }

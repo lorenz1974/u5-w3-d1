@@ -4,9 +4,9 @@ import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +15,7 @@ import u5w2d5.etm.auth.model.*;
 import u5w2d5.etm.auth.request.*;
 import u5w2d5.etm.auth.response.*;
 import u5w2d5.etm.auth.service.*;
+import u5w2d5.etm.response.IdResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,9 +24,15 @@ public class AuthController {
 
     private final AppUserService appUserService;
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<AppUserDetailsResponse> me() {
+        return ResponseEntity.ok(appUserService.getCurrentUser());
+    }
+
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
-    public idResponse register(@RequestBody AppUserRegistrationRequest registerRequest) {
+    public IdResponse register(@RequestBody AppUserRegistrationRequest registerRequest) {
         AppUser appUser = appUserService.registerUser(
                 registerRequest.getFirstName(),
                 registerRequest.getLastName(),
@@ -34,7 +41,7 @@ public class AuthController {
                 registerRequest.getPassword(),
                 Set.of(registerRequest.getRole() == null ? AppUserRole.ROLE_USER
                         : AppUserRole.valueOf("ROLE_" + registerRequest.getRole())));
-        return new idResponse(appUser.getId());
+        return new IdResponse(appUser.getId());
     }
 
     @PostMapping("/login")

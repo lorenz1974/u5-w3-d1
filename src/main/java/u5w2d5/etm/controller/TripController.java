@@ -3,6 +3,8 @@ package u5w2d5.etm.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import u5w2d5.etm.model.Trip;
 import u5w2d5.etm.request.TripRequestDTO;
@@ -32,7 +34,7 @@ public class TripController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
-    public IdResponse createTrip(@RequestBody TripRequestDTO trip) {
+    public IdResponse createTrip(@Valid @RequestBody TripRequestDTO trip) {
         return tripService.createTrip(trip);
     }
 

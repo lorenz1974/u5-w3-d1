@@ -23,14 +23,12 @@ public class AppUserRegistrationRequest {
     @Size(min = 2, max = 50)
     private String email;
 
-    @NotNull
     @Size(min = 2, max = 50)
     private String username;
 
-    @NotNull
     @Size(min = 5, max = 16)
     private String password;
 
-    @NotNull
+    // Questo può essere nullo perché il service lo setta a ROLE_USER di default
     private String role;
 }

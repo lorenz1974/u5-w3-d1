@@ -31,13 +31,13 @@ public class CreateAppUsers implements CommandLineRunner {
         for (int i = 0; i < 3; i++) {
             String firstName = faker.name().firstName();
             String lastName = faker.name().lastName();
-            String userName = (firstName + "_" + lastName).toLowerCase();
+            String userName = (firstName + "_" + lastName).replace(" ", "");
 
             String email = firstName.replace(" ", "") +
                     "." +
                     lastName.replace(" ", "") +
                     "@" +
-                    faker.internet().domainName().replace(" ", "").toLowerCase();
+                    faker.internet().domainName().replace(" ", "");
             String password = "admin";
             Set<AppUserRole> roles = Set.of(AppUserRole.ROLE_ADMIN);
 
@@ -120,17 +120,14 @@ public class CreateAppUsers implements CommandLineRunner {
         for (int i = 0; i < 3; i++) {
             String firstName = faker.name().firstName();
             String lastName = faker.name().lastName();
-            String userName = (firstName + "_" + lastName).toLowerCase();
             String email = firstName.replace(" ", "") +
                     "." +
                     lastName.replace(" ", "") +
                     "@" +
                     faker.internet().domainName().replace(" ", "").toLowerCase();
-            String password = "user";
-            Set<AppUserRole> roles = Set.of(AppUserRole.ROLE_USER);
 
             try {
-                appUserService.registerUser(firstName, lastName, userName, email, password, roles);
+                appUserService.registerUser(firstName, lastName, email);
             } catch (IllegalArgumentException e) {
                 new IllegalArgumentException("Error creating user: " + e.getMessage());
             } catch (Exception e) {

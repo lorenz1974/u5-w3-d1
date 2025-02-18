@@ -1,6 +1,7 @@
 // src/main/java/u5w2d5/etm/model/Employee.java
 package u5w2d5.etm.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,22 +20,35 @@ import lombok.AllArgsConstructor;
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    protected Long id;
 
     @Column(unique = true, nullable = false)
-    private String username;
+    protected String username;
 
     @Column(nullable = false)
-    private String firstName;
+    protected String firstName;
 
     @Column(nullable = false)
-    private String lastName;
+    protected String lastName;
 
-    private String email;
+    protected String email;
 
-    private String avatarUrl;
+    protected String avatarUrl;
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Booking> bookings;
+
+    // vado in override in modo da accertarmi che username e email siano sempre in
+    // minuscolo
+    public void setUsername(String username) {
+        // Rendo lo username minuscolo e rimuovo eventuali spazi o apici
+        this.username = username.toLowerCase().replace(" ", "").replace("'", "");
+    }
+
+    // vado in override in modo da accertarmi che username e email siano sempre in
+    // minuscolo
+    public void setEmail(String email) {
+        this.email = email.toLowerCase();
+    }
 
 }

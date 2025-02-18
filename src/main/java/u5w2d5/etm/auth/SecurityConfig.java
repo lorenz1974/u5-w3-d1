@@ -63,6 +63,7 @@ public class SecurityConfig {
     public List<String> publicUrls() {
         return List.of(
                 "/api/auth/**", // Endpoint per autenticazione e registrazione
+                "/api/employees/**", // Endpoint per gestione dipendenti TEMPORANEOOOO!!!!
                 "/public/**", // Endpoint aperti
                 "/swagger-ui/**", // Documentazione Swagger
                 "/v3/api-docs/**", // API documentation OpenAPI

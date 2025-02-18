@@ -11,7 +11,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import u5w2d5.etm.model.*;
-import u5w2d5.etm.request.EmployeeRequestDTO;
 import u5w2d5.etm.request.TripRequestDTO;
 import u5w2d5.etm.service.*;
 
@@ -28,32 +27,33 @@ public class PopulateDB implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception, IllegalArgumentException, EntityNotFoundException {
-        log.info("Populating Employees with fake data...");
-        for (int i = 0; i < 30; i++) {
-            String name = faker.name().firstName();
-            String surname = faker.name().lastName();
-            String email = name.replace(" ", "") +
-                    "." +
-                    surname.replace(" ", "") +
-                    "@" +
-                    faker.internet().domainName().replace(" ", "").toLowerCase();
 
-            EmployeeRequestDTO employee = new EmployeeRequestDTO();
-            employee.setUsername(email);
-            employee.setFirstName(name);
-            employee.setLastName(surname);
-            employee.setEmail(email);
+        // log.info("Populating Employees with fake data...");
+        // for (int i = 0; i < 30; i++) {
+        // String name = faker.name().firstName();
+        // String surname = faker.name().lastName();
+        // String email = name.replace(" ", "") +
+        // "." +
+        // surname.replace(" ", "") +
+        // "@" +
+        // faker.internet().domainName().replace(" ", "").toLowerCase();
 
-            log.debug("Creating employee: {}", employee);
-            try {
-                employeeService.createEmployee(employee);
-            } catch (IllegalArgumentException e) {
-                log.error("Employee already exists: " + employee.getUsername());
-            } catch (Exception e) {
-                log.error("An unexpected error occurred while creating employee");
-            }
-        }
-        log.info("Created employees");
+        // EmployeeRequestDTO employee = new EmployeeRequestDTO();
+        // employee.setUsername(email);
+        // employee.setFirstName(name);
+        // employee.setLastName(surname);
+        // employee.setEmail(email);
+
+        // log.debug("Creating employee: {}", employee);
+        // try {
+        // employeeService.createEmployee(employee);
+        // } catch (IllegalArgumentException e) {
+        // log.error("Employee already exists: " + employee.getUsername());
+        // } catch (Exception e) {
+        // log.error("An unexpected error occurred while creating employee");
+        // }
+        // }
+        // log.info("Created employees");
 
         log.info("Populating Trips with fake data...");
         for (int i = 0; i < 15; i++) {
@@ -93,7 +93,8 @@ public class PopulateDB implements CommandLineRunner {
 
         log.info("Creating Bookings...");
         for (int i = 0; i < 80; i++) {
-            Employee employee = employeeService.getEmployeeById((long) faker.number().numberBetween(1, 30));
+            int employeeCount = employeeService.getAll().size();
+            Employee employee = employeeService.getEmployeeById((long) faker.number().numberBetween(1, employeeCount));
             Trip trip = tripService.getTripById((long) faker.number().numberBetween(1, 15));
 
             Booking booking = new Booking();

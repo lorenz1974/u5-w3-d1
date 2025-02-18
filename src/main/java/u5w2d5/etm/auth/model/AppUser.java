@@ -10,43 +10,37 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import u5w2d5.etm.model.Employee;
 
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "app_users")
-public class AppUser implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Long id;
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "employee_type")
+public class AppUser extends Employee implements UserDetails {
 
-    @Column(length = 100)
-    private String firstName;
-
-    @Column(length = 100)
-    private String lastName;
-
-    @Column(unique = true, length = 100, nullable = false)
-    private String email;
-
-    @Column(unique = true, length = 100, nullable = false)
-    private String username;
+    // Questa roba non serve essendo una tabella singola. Si usano le proprietà
+    // della classe padre ovvero "employee"
+    // @Id
+    // @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // @Column(nullable = false)
+    // private Long id;
 
     @Column(nullable = false)
     private String password;
@@ -59,6 +53,9 @@ public class AppUser implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "password_updated_at", nullable = false)
+    private LocalDateTime passwordUpdatedAt;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     private Set<AppUserRole> roles;
@@ -67,6 +64,13 @@ public class AppUser implements UserDetails {
     private boolean accountNonLocked = true;
     private boolean credentialsNonExpired = true;
     private boolean enabled = true;
+
+    // Creo il setPassword perché questo mi permette di aggiornare la data di cambio
+    public void setPassword(String password) {
+        // Per ragioni di standard la password deve arrivare già criptata
+        this.password = password;
+        this.passwordUpdatedAt = LocalDateTime.now();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

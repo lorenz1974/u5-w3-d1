@@ -164,6 +164,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         }
         // Prosegue la catena dei filtri di Spring Security.
+        //
         // - Se il token JWT è valido e l'utente è stato autenticato, la richiesta
         // continua con il contesto di sicurezza impostato.
         // - Se il token non è presente o non è valido, la richiesta viene comunque
@@ -175,7 +176,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // (come quelli di Spring Security o altri middleware)
         // possano eseguire la loro logica senza interruzioni.
         //
-        // **Come definire il filtro successivo nella catena:**
+        // Come definire il filtro successivo nella catena:
+        //
         // - I filtri vengono eseguiti nell'ordine in cui sono stati registrati nella
         // `SecurityFilterChain`.
         // - Questo filtro (`JwtRequestFilter`) viene tipicamente registrato **prima**
@@ -183,7 +185,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // e verificare il JWT prima che Spring Security esegua altri controlli di
         // autenticazione.
         //
-        // **Esempio di definizione del filtro in una configurazione Spring Security:**
+        // Esempio di definizione del filtro in una configurazione Spring Security:
+        //
         // ```java
         // http.addFilterBefore(jwtRequestFilter,
         // UsernamePasswordAuthenticationFilter.class);
@@ -194,19 +197,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // - È possibile usare `addFilterAfter()` o `addFilterAt()` se si vuole eseguire
         // il filtro in una posizione diversa.
         //
-        // **Alternative:**
+        // Alternative:
+        //
         // - Se il filtro JWT dovesse essere l'ultimo nella catena, si potrebbe
         // registrarlo con `addFilterAfter(jwtRequestFilter, SomeOtherFilter.class)`.
         // - Se si volesse sostituire completamente un filtro esistente, si potrebbe
         // usare `http.addFilterAt(jwtRequestFilter, ExistingFilter.class)`.
         //
-        // **Effetti della mancata chiamata a `chain.doFilter(request, response)`**
+        // Effetti della mancata chiamata a `chain.doFilter(request, response)`
+        //
         // - Se `chain.doFilter(request, response)` non venisse chiamato, l'esecuzione
         // si interromperebbe e la richiesta non raggiungerebbe il controller o gli
         // altri filtri.
         // - Questo sarebbe utile solo se si volesse bloccare esplicitamente la
         // richiesta in caso di errore (ad esempio, restituendo
         // `response.sendError(HttpServletResponse.SC_UNAUTHORIZED)`).
+
         chain.doFilter(request, response);
 
     }
