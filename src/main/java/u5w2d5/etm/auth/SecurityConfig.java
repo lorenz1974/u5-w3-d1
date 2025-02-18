@@ -1,7 +1,6 @@
 package u5w2d5.etm.auth;
 
 import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,52 +15,30 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import lombok.RequiredArgsConstructor;
 
 /**
- * Configures the security settings for the application.
+ * Configura le impostazioni di sicurezza per l'applicazione.
  *
- * This class sets up the security filter chain, CORS configuration, and other
- * security-related beans. It uses JWT for stateless authentication and
- * configures public URLs that do not require authentication.
+ * Questa classe imposta la catena di filtri di sicurezza, la gestione delle
+ * sessioni e la configurazione CORS. L'autenticazione si basa su JWT e
+ * non utilizza sessioni per mantenere lo stato dell'utente.
  *
- * The security configuration includes:
- * - Disabling CSRF protection to allow stateless authentication using JWT.
- * - Configuring CORS settings to allow cross-origin requests.
- * - Permitting unauthenticated access to specified public URLs.
- * - Requiring authentication for any other request.
- * - Setting a custom authentication entry point for handling authentication
- * exceptions.
- * - Configuring session management to be stateless.
- * - Adding a custom JWT filter to validate JWT tokens before processing
- * authentication.
+ * La configurazione include:
+ * - Disabilitazione della protezione CSRF (perché JWT è stateless).
+ * - Configurazione delle policy CORS per consentire richieste cross-origin.
+ * - Permesso di accesso pubblico a URL definiti.
+ * - Richiesta di autenticazione per tutti gli altri endpoint.
+ * - Configurazione di un entry point personalizzato per gestire errori di
+ * autenticazione.
+ * - Impostazione di un filtro JWT per intercettare e validare i token prima che
+ * la richiesta venga elaborata.
  *
- * The CORS configuration includes:
- * - Allowing all origins (`configuration.addAllowedOrigin("*")`).
- * - Allowing all HTTP methods (`configuration.addAllowedMethod("*")`).
- * - Allowing all headers (`configuration.addAllowedHeader("*")`).
- * - Not allowing the sending of credentials
- * (`configuration.setAllowCredentials(false)`).
- *
- * Theoretical concepts:
- * - CSRF (Cross-Site Request Forgery): A type of attack that tricks the user
- * into performing actions they did not intend to perform.
- * - CORS (Cross-Origin Resource Sharing): A security mechanism that allows
- * servers to specify which domains can access their resources.
- * - JWT (JSON Web Token): A compact, URL-safe means of representing claims to
- * be transferred between two parties.
- * - Stateless Authentication: An authentication mechanism where the server does
- * not maintain any state about the user between requests.
- * - Authentication Entry Point: A component that handles authentication
- * exceptions, such as unauthorized access.
- * - Session Management: The process of managing user sessions, which can be
- * stateful or stateless.
- *
- * Note:
- * - `setAllowCredentials(false)` is set to prevent the sending of credentials
- * (such as cookies) with cross-origin requests when `allowedOrigins` is set to
- * "*". This is a security measure to prevent unauthorized access to resources.
+ * Alternativa:
+ * - Se si usassero sessioni, si potrebbe configurare lo stato della sessione
+ * con `SessionCreationPolicy.IF_REQUIRED`.
+ * - Se si volesse mantenere CSRF abilitato, sarebbe necessario un meccanismo di
+ * gestione dei token CSRF lato client.
  */
 @Configuration
 @EnableWebSecurity
@@ -71,151 +48,146 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtRequestFilter jwtRequestFilter;
 
+    /**
+     * Definisce gli endpoint pubblici accessibili senza autenticazione.
+     *
+     * @return Lista degli URL accessibili senza autenticazione.
+     *
+     *         Alternativa:
+     *         - Si potrebbe implementare un meccanismo di configurazione per
+     *         caricare queste URL da un file di configurazione esterno.
+     *         - Si potrebbe proteggere Swagger UI dietro autenticazione per
+     *         ambienti di produzione.
+     */
     @Bean
     public List<String> publicUrls() {
         return List.of(
-                "/api/auth/**", // Endpoint di autenticazione
-                "/public/**", // Endpoint pubblici
+                "/api/auth/**", // Endpoint per autenticazione e registrazione
+                "/public/**", // Endpoint aperti
                 "/swagger-ui/**", // Documentazione Swagger
-                "/v3/api-docs/**", // Documentazione Swagger
+                "/v3/api-docs/**", // API documentation OpenAPI
                 "/error",
-                "/sw.js");
+                "/sw.js"); // Service worker per caching
     }
 
     /**
-     * Configures the security filter chain for the application.
+     * Configura la catena di filtri di sicurezza per l'applicazione.
      *
-     * @param http the {@link HttpSecurity} to modify
-     * @return the {@link SecurityFilterChain} that was built
-     * @throws Exception if an error occurs
+     * @param http Oggetto {@link HttpSecurity} da configurare.
+     * @return La catena di filtri di sicurezza configurata.
+     * @throws Exception se la configurazione fallisce.
      *
-     *                   Note:
-     *                   - {@link HttpSecurity#csrf(java.util.function.Consumer)}:
-     *                   Disables Cross-Site Request Forgery (CSRF) protection.
-     *                   - {@link HttpSecurity#cors(java.util.function.Consumer)}:
-     *                   Configures Cross-Origin Resource Sharing (CORS) settings.
-     *                   -
-     *                   {@link HttpSecurity#authorizeHttpRequests(java.util.function.Consumer)}:
-     *                   Configures authorization for HTTP requests.
-     *                   -
-     *                   {@link HttpSecurity#exceptionHandling(java.util.function.Consumer)}:
-     *                   Configures exception handling for authentication.
-     *                   - {@link HttpSecurity#build()}: Builds the
-     *                   {@link SecurityFilterChain}.
-     *
-     *                   Details:
-     *                   - Disables CSRF protection using
-     *                   {@link HttpSecurity#csrf(java.util.function.Consumer)}:
-     *                   CSRF protection is disabled to allow stateless
-     *                   authentication using JWT.
-     *                   - Configures CORS settings using
-     *                   {@link HttpSecurity#cors(java.util.function.Consumer)}:
-     *                   Configures CORS to allow cross-origin requests from
-     *                   specified origins.
-     *                   - Permits all requests to URLs specified in
-     *                   {@code publicUrls} using
-     *                   {@link HttpSecurity#authorizeHttpRequests(java.util.function.Consumer)}:
-     *                   Allows unauthenticated access to the URLs specified in the
-     *                   publicUrls list.
-     *                   - Requires authentication for any other request using
-     *                   {@link HttpSecurity#authorizeHttpRequests(java.util.function.Consumer)}:
-     *                   Ensures that any request not specified in publicUrls
-     *                   requires authentication.
-     *                   - Sets a custom authentication entry point for handling
-     *                   authentication exceptions using
-     *                   {@link HttpSecurity#exceptionHandling(java.util.function.Consumer)}:
-     *                   Configures a custom entry point to handle authentication
-     *                   exceptions, such as unauthorized access.
-     *                   - Configures session management using
-     *                   {@link HttpSecurity#sessionManagement(java.util.function.Consumer)}:
-     *                   Sets the session management policy to stateless, as JWT is
-     *                   used for authentication.
-     *                   - Adds a custom JWT filter before the
-     *                   {@link UsernamePasswordAuthenticationFilter} using
-     *                   {@link HttpSecurity#addFilterBefore(javax.servlet.Filter, Class)}:
-     *                   Adds the JwtRequestFilter to validate JWT tokens before
-     *                   processing authentication.
+     *                   Alternativa:
+     *                   - Se si usasse Basic Authentication, si potrebbe usare
+     *                   `.httpBasic(Customizer.withDefaults())` al posto del filtro
+     *                   JWT.
+     *                   - Se si volesse proteggere Swagger UI, si potrebbe
+     *                   rimuovere `/swagger-ui/**` dalla lista di URL pubblici.
      */
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                /**
+                 * Disabilita la protezione CSRF.
+                 * - JWT è stateless, quindi non è vulnerabile agli attacchi CSRF.
+                 * - CSRF è utile per sessioni di autenticazione basate su cookie.
+                 */
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(authorizeRequests -> {
-                    publicUrls().forEach(url -> authorizeRequests.requestMatchers(url).permitAll());
-                    authorizeRequests.anyRequest().authenticated();
-                })
-                .exceptionHandling(
-                        exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                .sessionManagement(
-                        sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
+                /**
+                 * Configura la gestione delle richieste CORS.
+                 * - Necessario se l'API è chiamata da domini diversi.
+                 */
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                /**
+                 * Configura le autorizzazioni per gli endpoint.
+                 * - Gli URL definiti in `publicUrls()` sono accessibili a tutti.
+                 * - Tutti gli altri endpoint richiedono autenticazione.
+                 */
+                .authorizeHttpRequests(auth -> {
+                    publicUrls().forEach(url -> auth.requestMatchers(url).permitAll());
+                    auth.anyRequest().authenticated();
+                })
+
+                /**
+                 * Configura la gestione delle eccezioni.
+                 * - Se un utente non autenticato tenta di accedere a un endpoint protetto,
+                 * viene gestito dall'`authenticationEntryPoint`.
+                 */
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+
+                /**
+                 * Configura la gestione delle sessioni.
+                 * - `STATELESS`: Ogni richiesta deve includere il token JWT, senza mantenere
+                 * sessioni lato server.
+                 */
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        /**
+         * Aggiunge il filtro per la gestione dei token JWT.
+         * - Il filtro intercetta le richieste prima
+         * dell'`UsernamePasswordAuthenticationFilter`.
+         */
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
-     * Configura le impostazioni CORS (Cross-Origin Resource Sharing) per
-     * l'applicazione.
+     * Configura le impostazioni CORS per l'applicazione.
      *
-     * CORS è un meccanismo che permette di controllare quali risorse possono essere
-     * richieste da un dominio diverso
-     * rispetto a quello da cui il server ha ricevuto la richiesta. Questa
-     * configurazione è utile per abilitare o
-     * limitare l'accesso alle risorse del server da parte di client web che
-     * risiedono su domini differenti.
+     * @return Una configurazione CORS che consente richieste da qualsiasi origine.
      *
-     * @return CorsConfigurationSource che contiene le impostazioni CORS
-     *         configurate.
-     *
-     *         La configurazione include:
-     *         - Permettere tutte le origini (configuration.addAllowedOrigin("*")).
-     *         - Permettere tutti i metodi HTTP
-     *         (configuration.addAllowedMethod("*")).
-     *         - Permettere tutti gli header (configuration.addAllowedHeader("*")).
-     *         - Non consentire l'invio di credenziali
-     *         (configuration.setAllowCredentials(false)).
-     *
-     *         La configurazione viene applicata a tutti i percorsi ("/**").
-     *
-     *         Concetti teorici:
-     *         - CORS (Cross-Origin Resource Sharing): È un meccanismo di sicurezza
-     *         che permette ai server di controllare
-     *         quali risorse possono essere richieste da domini diversi da quello da
-     *         cui il server ha ricevuto la richiesta.
-     *         Questo è importante per prevenire attacchi come Cross-Site Scripting
-     *         (XSS) e Cross-Site Request Forgery (CSRF).
-     *         - Origini: Si riferisce ai domini da cui possono provenire le
-     *         richieste. Permettere tutte le origini significa
-     *         che qualsiasi dominio può fare richieste al server.
-     *         - Metodi HTTP: Si riferisce ai tipi di richieste HTTP (GET, POST,
-     *         PUT, DELETE, ecc.) che sono permessi.
-     *         - Header: Si riferisce agli header HTTP che possono essere inclusi
-     *         nelle richieste.
-     *         - Credenziali: Si riferisce all'invio di cookie o altre credenziali
-     *         di autenticazione con le richieste.
+     *         Alternativa:
+     *         - Per maggiore sicurezza, si potrebbe restringere l'accesso solo ai
+     *         domini specifici
+     *         (`setAllowedOrigins(List.of("https://example.com"))`).
+     *         - Se l'app utilizza credenziali (come cookie per autenticazione
+     *         OAuth2), `setAllowCredentials(true)` dovrebbe essere abilitato, ma
+     *         con origini specifiche.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("*"); // Permetti tutte le origini
-        configuration.addAllowedMethod("*"); // Permetti tutti i metodi HTTP
-        configuration.addAllowedHeader("*"); // Permetti tutti gli header
-        configuration.setAllowCredentials(false); // Consente l'invio di credenziali, mettere false se allowedOrigins è
-                                                  // "*"
+        configuration.addAllowedOrigin("*"); // Permette richieste da qualsiasi origine
+        configuration.addAllowedMethod("*"); // Permette tutti i metodi HTTP (GET, POST, PUT, DELETE, etc.)
+        configuration.addAllowedHeader("*"); // Permette qualsiasi header nella richiesta
+        configuration.setAllowCredentials(false); // Per sicurezza, disabilita credenziali se tutte le origini sono
+                                                  // permesse
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
+    /**
+     * Configura il password encoder per l'applicazione.
+     *
+     * @return Un'istanza di {@link BCryptPasswordEncoder}.
+     *
+     *         Alternativa:
+     *         - `NoOpPasswordEncoder` potrebbe essere usato per ambienti di test,
+     *         ma è insicuro per produzione.
+     *         - `PBKDF2`, `SCrypt`, `Argon2` sono alternative moderne con maggiore
+     *         resistenza a brute force.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configura l'AuthenticationManager.
+     *
+     * @param authenticationConfiguration Configurazione di autenticazione.
+     * @return L'istanza di AuthenticationManager.
+     * @throws Exception se la configurazione fallisce.
+     *
+     *                   Alternativa:
+     *                   - Se si volesse supportare più metodi di autenticazione, si
+     *                   potrebbero aggiungere provider personalizzati.
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
