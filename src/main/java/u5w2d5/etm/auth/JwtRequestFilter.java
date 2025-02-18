@@ -1,7 +1,6 @@
 package u5w2d5.etm.auth;
 
 import java.io.IOException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SecurityException;
-import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,9 +25,26 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final JwtTokenUtil jwtTokenUtil;
 
+    /**
+     * This method filters incoming HTTP requests to validate JWT tokens and set the
+     * authentication context.
+     *
+     * @param request  the HTTP request
+     * @param response the HTTP response
+     * @param chain    the filter chain
+     * @throws ServletException if an error occurs during filtering
+     * @throws IOException      if an I/O error occurs during filtering
+     *
+     *                          The JWT token is expected to be in the
+     *                          "Authorization" header in the format "Bearer token".
+     *                          The method extracts the token by removing the
+     *                          "Bearer " prefix (hence starting from the 7th
+     *                          position).
+     *                          It then validates the token and sets the
+     *                          authentication context if the token is valid.
+     */
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
-            @NonNull FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         final String requestTokenHeader = request.getHeader("Authorization");
 
@@ -37,20 +52,24 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String jwtToken = null;
 
         // JWT Token is in the form "Bearer token". Remove Bearer word and get only the
-        // Token
+        // Token at 7th position.
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7);
             try {
                 username = jwtTokenUtil.getUsernameFromToken(jwtToken);
             } catch (IllegalArgumentException e) {
-                log.warn("Unable to get JWT Token");
+                throw new ServletException("Unable to get JWT Token", e);
             } catch (ExpiredJwtException e) {
-                log.warn("JWT Token has expired");
+                throw new ServletException("JWT Token has expired", e);
             } catch (SecurityException e) {
-                log.warn("JWT Token security validation failed");
+                throw new ServletException("JWT Token security validation failed", e);
             }
         } else {
+            // Log a warning and continue the filter chain for requests without a Bearer
+            // token
             log.warn("JWT Token does not begin with Bearer String");
+            chain.doFilter(request, response);
+            return;
         }
 
         // Once we get the token validate it.
@@ -73,5 +92,4 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
         chain.doFilter(request, response);
     }
-
 }

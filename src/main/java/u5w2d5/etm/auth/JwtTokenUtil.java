@@ -18,16 +18,21 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Configuration
 @RequiredArgsConstructor
+@Getter
+@Setter
 @ConfigurationProperties(prefix = "jwt")
+@Slf4j
 public class JwtTokenUtil {
-    private final String secretKey;
-    private final long expirationTime;
+    private String secretKey;
+    private long expirationTime;
 
     // Estrae il nome utente dal token JWT
     public String getUsernameFromToken(String token) {
@@ -61,6 +66,7 @@ public class JwtTokenUtil {
 
     // Estrae tutti i claims dal token JWT
     private Claims getAllClaimsFromToken(String token) {
+
         return Jwts.parserBuilder()
                 .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .build()
@@ -76,10 +82,17 @@ public class JwtTokenUtil {
 
     // Genera un token JWT per l'utente, includendo i ruoli
     public String generateToken(UserDetails userDetails) {
+
+        log.debug("-------------------- generateToken -------------------");
+
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
         List<String> roles = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
+
+        log.debug("secretKey: " + secretKey);
+        log.debug("expirationTime: " + expirationTime);
+        log.debug("User roles: " + roles);
 
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())

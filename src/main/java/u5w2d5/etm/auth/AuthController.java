@@ -3,6 +3,7 @@ package u5w2d5.etm.auth;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -23,6 +24,7 @@ public class AuthController {
     private final AppUserService appUserService;
 
     @PostMapping("/register")
+    @PreAuthorize("hasRole('ADMIN')")
     public idResponse register(@RequestBody AppUserRegistrationRequest registerRequest) {
         AppUser appUser = appUserService.registerUser(
                 registerRequest.getFirstName(),
