@@ -80,9 +80,4 @@ public class ExceptionHandlerClass {
     protected ResponseEntity<String> entityNotFound(SecurityException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
-
-    @ExceptionHandler(value = SecurityException.class)
-    protected ResponseEntity<String> entityNotFound(SecurityException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
 }
